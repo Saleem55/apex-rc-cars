@@ -25,9 +25,15 @@ export default function App() {
           return;
         }
         if (data && data.length > 0) {
-          // If images in Supabase are simple text arrays, map them
-          setProductsList(data);
-          setSelectedProduct(data[0]);
+          // Map database snake_case fields back to camelCase for the frontend
+          const mappedData = data.map((item) => ({
+            ...item,
+            currencySymbol: item.currency_symbol || item.currencySymbol || '₹',
+            reviewsCount: item.reviews_count !== undefined ? item.reviews_count : item.reviewsCount,
+            imageCaptions: item.image_captions || item.imageCaptions || [],
+          }));
+          setProductsList(mappedData);
+          setSelectedProduct(mappedData[0]);
         }
       } catch (err) {
         console.warn('Failed to load products from database:', err.message);
