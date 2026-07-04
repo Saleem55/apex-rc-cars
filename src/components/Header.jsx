@@ -1,7 +1,7 @@
 import React from 'react';
-import { ShoppingCart, Radio } from 'lucide-react';
+import { ShoppingCart, Radio, User, LogIn } from 'lucide-react';
 
-export default function Header({ cartItemsCount, onCartOpen }) {
+export default function Header({ cartItemsCount, onCartOpen, user, onProfileOpen, onAuthModalOpen }) {
   return (
     <header className="header-nav">
       <div className="container header-container">
@@ -22,6 +22,24 @@ export default function Header({ cartItemsCount, onCartOpen }) {
         </nav>
 
         <div className="nav-actions">
+          {user ? (
+            <button 
+              className="profile-toggle-btn" 
+              onClick={onProfileOpen}
+              aria-label="Open Profile"
+            >
+              <User size={20} />
+            </button>
+          ) : (
+            <button 
+              className="btn-secondary nav-signin-btn" 
+              onClick={onAuthModalOpen}
+            >
+              <LogIn size={14} />
+              <span>Sign In</span>
+            </button>
+          )}
+
           <button 
             className="cart-toggle-btn" 
             onClick={onCartOpen}
@@ -136,6 +154,42 @@ export default function Header({ cartItemsCount, onCartOpen }) {
           color: var(--accent-cyan);
           box-shadow: 0 0 15px rgba(0, 240, 255, 0.2);
           background: rgba(0, 240, 255, 0.05);
+        }
+
+        .nav-actions {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+        }
+
+        .profile-toggle-btn {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          width: 44px;
+          height: 44px;
+          border-radius: 50%;
+          border: 1px solid var(--border-color);
+          background: rgba(255, 255, 255, 0.03);
+          color: var(--text-primary);
+          transition: var(--transition-smooth);
+        }
+
+        .profile-toggle-btn:hover {
+          border-color: var(--accent-cyan);
+          color: var(--accent-cyan);
+          box-shadow: 0 0 15px rgba(0, 240, 255, 0.2);
+          background: rgba(0, 240, 255, 0.05);
+        }
+
+        .nav-signin-btn {
+          padding: 8px 16px;
+          font-size: 0.85rem;
+          border-radius: 20px;
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          height: 38px;
         }
 
         .cart-badge {

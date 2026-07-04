@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { X, CreditCard, ChevronRight, CheckCircle2, ShieldCheck, Truck, ClipboardList } from 'lucide-react';
 import { supabase } from '../supabaseClient';
 
-export default function Checkout({ isOpen, onClose, cart, onClearCart }) {
+export default function Checkout({ isOpen, onClose, cart, onClearCart, user }) {
   const [step, setStep] = useState(1); // 1: Shipping, 2: Payment, 3: Processing, 4: Success
   const [shippingForm, setShippingForm] = useState({
     name: '',
@@ -86,7 +86,8 @@ export default function Checkout({ isOpen, onClose, cart, onClearCart }) {
         subtotal: subtotal,
         total: total,
         payment_status: 'completed',
-        payment_method: 'simulated_card'
+        payment_method: 'simulated_card',
+        user_id: user ? user.id : null
       });
       if (error) {
         console.warn('Failed to save order to Supabase:', error.message);
