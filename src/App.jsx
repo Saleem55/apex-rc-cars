@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Header from './components/Header';
 import Hero from './components/Hero';
 import Gallery from './components/Gallery';
@@ -7,12 +7,34 @@ import Cart from './components/Cart';
 import Checkout from './components/Checkout';
 import Footer from './components/Footer';
 import { products } from './data/products';
+import { supabase } from './supabaseClient';
 
 export default function App() {
-  const [selectedProduct] = useState(products[0]); // Default to Pretender 24
+  const [productsList, setProductsList] = useState(products);
+  const [selectedProduct, setSelectedProduct] = useState(products[0]);
   const [cart, setCart] = useState([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
+
+  useEffect(() => {
+    async function fetchProducts() {
+      try {
+        const { data, error } = await supabase.from('products').select('*');
+        if (error) {
+          console.warn('Supabase products fetch failed, using static fallback:', error.message);
+          return;
+        }
+        if (data && data.length > 0) {
+          // If images in Supabase are simple text arrays, map them
+          setProductsList(data);
+          setSelectedProduct(data[0]);
+        }
+      } catch (err) {
+        console.warn('Failed to load products from database:', err.message);
+      }
+    }
+    fetchProducts();
+  }, []);
 
   // Cart operations
   const handleAddToCart = (product) => {

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { X, CreditCard, ChevronRight, CheckCircle2, ShieldCheck, Truck, ClipboardList } from 'lucide-react';
+import { supabase } from '../supabaseClient';
 
 export default function Checkout({ isOpen, onClose, cart, onClearCart }) {
   const [step, setStep] = useState(1); // 1: Shipping, 2: Payment, 3: Processing, 4: Success
@@ -72,6 +73,31 @@ export default function Checkout({ isOpen, onClose, cart, onClearCart }) {
     }
   };
 
+  const saveOrderToSupabase = async (orderNum) => {
+    try {
+      const { error } = await supabase.from('orders').insert({
+        order_number: orderNum,
+        customer_name: shippingForm.name,
+        customer_email: shippingForm.email,
+        shipping_address: shippingForm.address,
+        shipping_city: shippingForm.city,
+        shipping_zip: shippingForm.zip,
+        items: cart.map(item => ({ id: item.id, name: item.name, price: item.price, quantity: item.quantity })),
+        subtotal: subtotal,
+        total: total,
+        payment_status: 'completed',
+        payment_method: 'simulated_card'
+      });
+      if (error) {
+        console.warn('Failed to save order to Supabase:', error.message);
+      } else {
+        console.log('Order successfully logged to Supabase.');
+      }
+    } catch (err) {
+      console.warn('Supabase insert catch error:', err.message);
+    }
+  };
+
   const simulatePayment = () => {
     const statuses = [
       { text: 'Securing tunnel connection...', delay: 800 },
@@ -90,6 +116,7 @@ export default function Checkout({ isOpen, onClose, cart, onClearCart }) {
       // Generate random order number
       const orderNum = 'RC-' + Math.floor(100000 + Math.random() * 900000);
       setOrderNumber(orderNum);
+      saveOrderToSupabase(orderNum);
       setStep(4);
       onClearCart(); // Reset shopping cart
     }, 4200);
