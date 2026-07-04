@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { Search as SearchIcon, SlidersHorizontal, ShoppingCart, Info, Eye } from 'lucide-react';
 
 export default function Search({ productsList, onAddToCart, onBuyNow }) {
@@ -55,7 +56,7 @@ export default function Search({ productsList, onAddToCart, onBuyNow }) {
         {/* Page Header */}
         <div className="search-header-section">
           <h1 className="section-title">
-            PRODUCT <span className="text-glow-cyan">CATALOG</span>
+            OUR <span className="text-glow-cyan">PRODUCTS</span>
           </h1>
           <p className="search-subtitle">
             Find the perfect high-performance remote-controlled racer for your next session.
@@ -138,21 +139,14 @@ export default function Search({ productsList, onAddToCart, onBuyNow }) {
                     <span className="card-price text-glow-cyan">{formatPrice(item)}</span>
                     
                     {!item.isComingSoon ? (
-                      <div className="card-cta-group">
-                        <button 
-                          className="cart-btn-icon" 
-                          onClick={() => onAddToCart(item)}
-                          aria-label="Add to cart"
-                        >
-                          <ShoppingCart size={16} />
-                        </button>
-                        <button 
-                          className="btn-accent card-buy-btn"
-                          onClick={() => onBuyNow(item)}
-                        >
-                          Buy Now
-                        </button>
-                      </div>
+                      <Link 
+                        to={`/product/${item.id}`} 
+                        className="btn-accent card-buy-btn"
+                        style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+                      >
+                        <Eye size={14} />
+                        <span>View Details</span>
+                      </Link>
                     ) : (
                       <button className="btn-secondary card-notify-btn" disabled>
                         Notify Me

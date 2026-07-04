@@ -9,6 +9,7 @@ import Home from './pages/Home';
 import About from './pages/About';
 import Search from './pages/Search';
 import Orders from './pages/Orders';
+import ProductDetail from './pages/ProductDetail';
 import { products } from './data/products';
 import { supabase } from './supabaseClient';
 
@@ -135,21 +136,22 @@ export default function App() {
         {/* Main Sections */}
         <main>
           <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/about" element={<About />} />
             <Route 
-              path="/" 
+              path="/products" 
               element={
-                <Home 
-                  product={selectedProduct} 
+                <Search 
+                  productsList={productsList} 
                   onAddToCart={handleAddToCart} 
                   onBuyNow={handleBuyNow} 
                 />
               } 
             />
-            <Route path="/about" element={<About />} />
             <Route 
-              path="/search" 
+              path="/product/:id" 
               element={
-                <Search 
+                <ProductDetail 
                   productsList={productsList} 
                   onAddToCart={handleAddToCart} 
                   onBuyNow={handleBuyNow} 

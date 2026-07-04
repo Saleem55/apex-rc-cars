@@ -18,8 +18,7 @@ export default function Header({ cartItemsCount, onCartOpen, user, onAuthModalOp
         </div>
         
         <nav className="nav-links">
-          <Link to="/" className="nav-link">Home</Link>
-          <Link to="/search" className="nav-link">Catalog</Link>
+          <Link to="/products" className="nav-link">Products</Link>
           <Link to="/about" className="nav-link">About Us</Link>
         </nav>
 
