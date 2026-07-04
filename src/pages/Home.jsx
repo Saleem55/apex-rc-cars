@@ -11,11 +11,7 @@ export default function Home() {
         <div className="container grid-2 home-hero-container">
           
           <div className="home-hero-content">
-            <div className="badge-wrapper">
-              <span className="badge-glow-red">Grand Opening</span>
-              <span className="badge-glow">buyyverse.online</span>
-            </div>
-            
+
             <h1 className="home-hero-title">
               HIGH-PERFORMANCE <span className="text-glow-red">RC RACING</span>
             </h1>
