@@ -330,3 +330,16 @@ h1, h2, h3, h4, h5, h6 {
     padding: 60px 0;
   }
 }
+
+/* Global Mobile Optimizations */
+@media (max-width: 600px) {
+  html, body {
+    font-size: 15px;
+  }
+  .section-title {
+    font-size: 1.8rem !important;
+  }
+  .container {
+    padding: 0 16px;
+  }
+}

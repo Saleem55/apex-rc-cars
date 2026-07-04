@@ -212,8 +212,40 @@ export default function Header({ cartItemsCount, onCartOpen, user, onAuthModalOp
         }
 
         @media (max-width: 768px) {
+          .logo-text {
+            font-size: 1.1rem;
+          }
+          .logo-icon {
+            width: 32px;
+            height: 32px;
+          }
           .nav-links {
-            display: none; /* Add slide-in nav drawer in future, keep clean for now */
+            gap: 16px;
+          }
+          .nav-link {
+            font-size: 0.8rem;
+          }
+          .nav-signin-btn span {
+            display: none;
+          }
+          .nav-signin-btn {
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            padding: 0;
+            justify-content: center;
+          }
+        }
+
+        @media (max-width: 480px) {
+          .logo-text {
+            display: none;
+          }
+          .nav-links {
+            gap: 12px;
+          }
+          .nav-link {
+            font-size: 0.78rem;
           }
         }
       `}</style>
