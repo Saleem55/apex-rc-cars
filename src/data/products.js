@@ -1,10 +1,3 @@
-import rcCar1 from '../assets/rc_car_1.jpg';
-import rcCar2 from '../assets/rc_car_2.jpg';
-import rcCar3 from '../assets/rc_car_3.jpg';
-import rcCar4 from '../assets/rc_car_4.jpg';
-import rcCar5 from '../assets/rc_car_5.jpg';
-import rcCarHero from '../assets/rc_car_hero.png';
-
 export const products = [
   {
     id: 'pretender-24',
@@ -17,12 +10,12 @@ export const products = [
     reviewsCount: 128,
     description: 'Dominate any terrain with the Pretender 24. Featuring a high-torque motor, advanced 4WD drivetrain, and an independent suspension system illuminated by vibrant blue LED shocks, this buggy is designed to perform day or night. The package includes an ergonomic 2.4GHz remote control, high-capacity rechargeable battery, charging cable, and water filler.',
     images: [
-      rcCarHero,
-      rcCar1,
-      rcCar2,
-      rcCar3,
-      rcCar4,
-      rcCar5
+      '/rc_car_hero.png',
+      '/rc_car_1.jpg',
+      '/rc_car_2.jpg',
+      '/rc_car_3.jpg',
+      '/rc_car_4.jpg',
+      '/rc_car_5.jpg'
     ],
     imageCaptions: [
       'Pretender 24 Action Shot',
