@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Header from './components/Header';
-import Hero from './components/Hero';
-import Gallery from './components/Gallery';
-import Specs from './components/Specs';
 import Cart from './components/Cart';
 import Checkout from './components/Checkout';
 import Footer from './components/Footer';
 import AuthModal from './components/AuthModal';
-import ProfileDrawer from './components/ProfileDrawer';
+import Home from './pages/Home';
+import About from './pages/About';
+import Search from './pages/Search';
+import Orders from './pages/Orders';
 import { products } from './data/products';
 import { supabase } from './supabaseClient';
 
@@ -19,7 +20,6 @@ export default function App() {
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
   const [user, setUser] = useState(null);
   const [isAuthOpen, setIsAuthOpen] = useState(false);
-  const [isProfileOpen, setIsProfileOpen] = useState(false);
 
   useEffect(() => {
     // 1. Fetch products
@@ -31,7 +31,6 @@ export default function App() {
           return;
         }
         if (data && data.length > 0) {
-          // Map database snake_case fields back to camelCase for the frontend
           const mappedData = data.map((item) => ({
             ...item,
             currencySymbol: item.currency_symbol || item.currencySymbol || '₹',
@@ -71,12 +70,10 @@ export default function App() {
       }
       return [...prevCart, { ...product, quantity: 1 }];
     });
-    // Visual feedback: slide open the cart drawer
     setIsCartOpen(true);
   };
 
   const handleBuyNow = (product) => {
-    // Add to cart first
     setCart((prevCart) => {
       const existingItem = prevCart.find((item) => item.id === product.id);
       if (existingItem) {
@@ -86,7 +83,6 @@ export default function App() {
       }
       return [...prevCart, { ...product, quantity: 1 }];
     });
-    // Close cart drawer if open, directly open checkout or show login
     setIsCartOpen(false);
     
     if (!user) {
@@ -126,82 +122,99 @@ export default function App() {
   const totalCartCount = cart.reduce((total, item) => total + item.quantity, 0);
 
   return (
-    <div className="app-wrapper">
-      {/* Navigation Header */}
-      <Header 
-        cartItemsCount={totalCartCount} 
-        onCartOpen={() => setIsCartOpen(true)} 
-        user={user}
-        onProfileOpen={() => setIsProfileOpen(true)}
-        onAuthModalOpen={() => setIsAuthOpen(true)}
-      />
-
-      {/* Main Sections */}
-      <main>
-        <Hero 
-          product={selectedProduct} 
-          onAddToCart={handleAddToCart} 
-          onBuyNow={handleBuyNow} 
+    <Router>
+      <div className="app-wrapper">
+        {/* Navigation Header */}
+        <Header 
+          cartItemsCount={totalCartCount} 
+          onCartOpen={() => setIsCartOpen(true)} 
+          user={user}
+          onAuthModalOpen={() => setIsAuthOpen(true)}
         />
-        
-        <Gallery product={selectedProduct} />
-        
-        <Specs product={selectedProduct} />
-      </main>
 
-      {/* Footer */}
-      <Footer />
+        {/* Main Sections */}
+        <main>
+          <Routes>
+            <Route 
+              path="/" 
+              element={
+                <Home 
+                  product={selectedProduct} 
+                  onAddToCart={handleAddToCart} 
+                  onBuyNow={handleBuyNow} 
+                />
+              } 
+            />
+            <Route path="/about" element={<About />} />
+            <Route 
+              path="/search" 
+              element={
+                <Search 
+                  productsList={productsList} 
+                  onAddToCart={handleAddToCart} 
+                  onBuyNow={handleBuyNow} 
+                />
+              } 
+            />
+            <Route 
+              path="/orders" 
+              element={
+                <Orders 
+                  user={user} 
+                  onSignOut={() => setUser(null)} 
+                  onAuthModalOpen={() => setIsAuthOpen(true)} 
+                />
+              } 
+            />
+          </Routes>
+        </main>
 
-      {/* Cart Drawer */}
-      <Cart 
-        isOpen={isCartOpen}
-        onClose={() => setIsCartOpen(false)}
-        cart={cart}
-        onUpdateQty={handleUpdateQty}
-        onRemoveItem={handleRemoveItem}
-        onCheckout={handleCheckoutProceed}
-      />
+        {/* Footer */}
+        <Footer />
 
-      {/* Checkout Stepper Modal */}
-      <Checkout 
-        isOpen={isCheckoutOpen}
-        onClose={() => setIsCheckoutOpen(false)}
-        cart={cart}
-        onClearCart={handleClearCart}
-        user={user}
-      />
+        {/* Cart Drawer */}
+        <Cart 
+          isOpen={isCartOpen}
+          onClose={() => setIsCartOpen(false)}
+          cart={cart}
+          onUpdateQty={handleUpdateQty}
+          onRemoveItem={handleRemoveItem}
+          onCheckout={handleCheckoutProceed}
+        />
 
-      {/* Authentication Modal */}
-      <AuthModal
-        isOpen={isAuthOpen}
-        onClose={() => setIsAuthOpen(false)}
-        onAuthSuccess={(loggedInUser) => {
-          setUser(loggedInUser);
-          if (cart.length > 0) {
-            setIsCheckoutOpen(true);
+        {/* Checkout Stepper Modal */}
+        <Checkout 
+          isOpen={isCheckoutOpen}
+          onClose={() => setIsCheckoutOpen(false)}
+          cart={cart}
+          onClearCart={handleClearCart}
+          user={user}
+        />
+
+        {/* Authentication Modal */}
+        <AuthModal
+          isOpen={isAuthOpen}
+          onClose={() => setIsAuthOpen(false)}
+          onAuthSuccess={(loggedInUser) => {
+            setUser(loggedInUser);
+            if (cart.length > 0) {
+              setIsCheckoutOpen(true);
+            }
+          }}
+        />
+
+        <style>{`
+          .app-wrapper {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
           }
-        }}
-      />
 
-      {/* Profile/Orders History Drawer */}
-      <ProfileDrawer
-        isOpen={isProfileOpen}
-        onClose={() => setIsProfileOpen(false)}
-        user={user}
-        onSignOut={() => setUser(null)}
-      />
-
-      <style>{`
-        .app-wrapper {
-          display: flex;
-          flex-direction: column;
-          min-height: 100vh;
-        }
-
-        main {
-          flex: 1;
-        }
-      `}</style>
-    </div>
+          main {
+            flex: 1;
+          }
+        `}</style>
+      </div>
+    </Router>
   );
 }

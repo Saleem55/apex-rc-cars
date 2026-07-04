@@ -1,35 +1,37 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { ShoppingCart, Radio, User, LogIn } from 'lucide-react';
 
-export default function Header({ cartItemsCount, onCartOpen, user, onProfileOpen, onAuthModalOpen }) {
+export default function Header({ cartItemsCount, onCartOpen, user, onAuthModalOpen }) {
   return (
     <header className="header-nav">
       <div className="container header-container">
         <div className="logo-section">
-          <div className="logo-icon">
-            <Radio className="text-glow-cyan" size={24} />
-          </div>
-          <span className="logo-text">
-            APEX<span className="text-glow-red">RC</span>
-          </span>
+          <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <div className="logo-icon">
+              <Radio className="text-glow-cyan" size={24} />
+            </div>
+            <span className="logo-text">
+              APEX<span className="text-glow-red">RC</span>
+            </span>
+          </Link>
         </div>
         
         <nav className="nav-links">
-          <a href="#hero" className="nav-link">Home</a>
-          <a href="#gallery" className="nav-link">Gallery</a>
-          <a href="#specs" className="nav-link">Specifications</a>
-          <a href="#reviews" className="nav-link">Reviews</a>
+          <Link to="/" className="nav-link">Home</Link>
+          <Link to="/search" className="nav-link">Catalog</Link>
+          <Link to="/about" className="nav-link">About Us</Link>
         </nav>
 
         <div className="nav-actions">
           {user ? (
-            <button 
+            <Link 
               className="profile-toggle-btn" 
-              onClick={onProfileOpen}
+              to="/orders"
               aria-label="Open Profile"
             >
               <User size={20} />
-            </button>
+            </Link>
           ) : (
             <button 
               className="btn-secondary nav-signin-btn" 
