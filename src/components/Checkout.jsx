@@ -337,7 +337,7 @@ export default function Checkout({ isOpen, onClose, cart, onClearCart, user }) {
               <div className="receipt-invoice glass-panel">
                 <div className="receipt-header">
                   <div className="receipt-logo">
-                    APEX<span className="text-glow-red">RC</span>
+                    Buyy<span className="text-glow-red">verse</span>
                   </div>
                   <div className="receipt-meta">
                     <span className="meta-label">Invoice:</span>

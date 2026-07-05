@@ -40,7 +40,7 @@ export default function Footer() {
         {/* Brand & Newsletter */}
         <div className="footer-brand-section">
           <h3 className="footer-logo">
-            APEX<span className="text-glow-red">RC</span>
+            Buyy<span className="text-glow-red">verse</span>
           </h3>
           <p className="footer-brand-desc">
             Designing high-performance, LED-illuminated RC vehicles built for racers who dare to dominate the dark.
@@ -93,7 +93,7 @@ export default function Footer() {
       {/* Bottom Bar */}
       <div className="container footer-bottom">
         <p className="copyright-text">
-          &copy; {new Date().getFullYear()} APEX RC Store. All rights reserved.
+          &copy; {new Date().getFullYear()} Buyyverse. All rights reserved.
         </p>
         
         <div className="social-links">

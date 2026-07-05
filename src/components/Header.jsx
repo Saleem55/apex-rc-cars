@@ -12,7 +12,7 @@ export default function Header({ cartItemsCount, onCartOpen, user, onAuthModalOp
               <Radio className="text-glow-cyan" size={24} />
             </div>
             <span className="logo-text">
-              APEX<span className="text-glow-red">RC</span>
+              Buyy<span className="text-glow-red">verse</span>
             </span>
           </Link>
         </div>
