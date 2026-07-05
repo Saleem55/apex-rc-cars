@@ -11,13 +11,6 @@ export default function Checkout({ isOpen, onClose, cart, onClearCart, user }) {
     city: '',
     zip: ''
   });
-  const [paymentForm, setPaymentForm] = useState({
-    cardName: '',
-    cardNumber: '',
-    cardExpiry: '',
-    cardCvv: ''
-  });
-  
   const [processingStatus, setProcessingStatus] = useState('Securing tunnel connection...');
   const [orderNumber, setOrderNumber] = useState('');
   
@@ -34,30 +27,7 @@ export default function Checkout({ isOpen, onClose, cart, onClearCart, user }) {
     return `${currencySymbol}${amount.toFixed(2)}`;
   };
 
-  // Handle card inputs auto-formatting
-  const handleCardNumberChange = (e) => {
-    let value = e.target.value.replace(/\D/g, '');
-    value = value.substring(0, 16);
-    const matches = value.match(/.{1,4}/g);
-    const formatted = matches ? matches.join(' ') : '';
-    setPaymentForm(prev => ({ ...prev, cardNumber: formatted }));
-  };
-
-  const handleCardExpiryChange = (e) => {
-    let value = e.target.value.replace(/\D/g, '');
-    value = value.substring(0, 4);
-    if (value.length > 2) {
-      value = value.substring(0, 2) + '/' + value.substring(2);
-    }
-    setPaymentForm(prev => ({ ...prev, cardExpiry: value }));
-  };
-
-  const handleCardCvvChange = (e) => {
-    const value = e.target.value.replace(/\D/g, '').substring(0, 3);
-    setPaymentForm(prev => ({ ...prev, cardCvv: value }));
-  };
-
-  // Step transitions & simulation
+  // Step transitions
   const handleShippingSubmit = (e) => {
     e.preventDefault();
     if (shippingForm.name && shippingForm.email && shippingForm.address && shippingForm.city && shippingForm.zip) {
@@ -65,15 +35,7 @@ export default function Checkout({ isOpen, onClose, cart, onClearCart, user }) {
     }
   };
 
-  const handlePaymentSubmit = (e) => {
-    e.preventDefault();
-    if (paymentForm.cardName && paymentForm.cardNumber.length >= 19 && paymentForm.cardExpiry.length === 5 && paymentForm.cardCvv.length === 3) {
-      setStep(3);
-      simulatePayment();
-    }
-  };
-
-  const saveOrderToSupabase = async (orderNum) => {
+  const saveOrderToSupabase = async (orderNum, paymentId) => {
     try {
       const { error } = await supabase.from('orders').insert({
         order_number: orderNum,
@@ -86,7 +48,7 @@ export default function Checkout({ isOpen, onClose, cart, onClearCart, user }) {
         subtotal: subtotal,
         total: total,
         payment_status: 'completed',
-        payment_method: 'simulated_card',
+        payment_method: 'razorpay',
         user_id: user ? user.id : null
       });
       if (error) {
@@ -99,35 +61,73 @@ export default function Checkout({ isOpen, onClose, cart, onClearCart, user }) {
     }
   };
 
-  const simulatePayment = () => {
-    const statuses = [
-      { text: 'Securing tunnel connection...', delay: 800 },
-      { text: 'Encrypting credentials...', delay: 1600 },
-      { text: 'Authorizing card transaction...', delay: 2600 },
-      { text: 'Securing order database records...', delay: 3400 }
-    ];
+  const handleRazorpayPayment = async () => {
+    setStep(3);
+    setProcessingStatus('Initializing secure checkout...');
 
-    statuses.forEach((status) => {
-      setTimeout(() => {
-        setProcessingStatus(status.text);
-      }, status.delay);
-    });
+    const apiUrl = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+      ? 'https://buyyverse.online/api/create-order'
+      : '/api/create-order';
 
-    setTimeout(() => {
-      // Generate random order number
-      const orderNum = 'RC-' + Math.floor(100000 + Math.random() * 900000);
-      setOrderNumber(orderNum);
-      saveOrderToSupabase(orderNum);
-      setStep(4);
-      onClearCart(); // Reset shopping cart
-    }, 4200);
+    try {
+      const response = await fetch(apiUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          amount: total,
+          currency: 'INR'
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to initiate secure payment. Please try again.');
+      }
+
+      const orderData = await response.json();
+
+      const options = {
+        key: import.meta.env.VITE_RAZORPAY_KEY_ID || 'rzp_live_T9odHSV2utZogf',
+        amount: orderData.amount,
+        currency: orderData.currency,
+        name: 'Buyyverse',
+        description: 'APEX RC Buggy Purchase',
+        order_id: orderData.id,
+        handler: async function (paymentResponse) {
+          setProcessingStatus('Recording order details...');
+          await saveOrderToSupabase(orderData.id, paymentResponse.razorpay_payment_id);
+          setOrderNumber(orderData.id);
+          setStep(4);
+          onClearCart();
+        },
+        prefill: {
+          name: shippingForm.name,
+          email: shippingForm.email,
+        },
+        theme: {
+          color: '#00f0ff'
+        },
+        modal: {
+          ondismiss: function () {
+            setStep(2);
+          }
+        }
+      };
+
+      const rzp = new window.Razorpay(options);
+      rzp.open();
+    } catch (err) {
+      console.error(err);
+      alert(err.message || 'Payment initiation failed.');
+      setStep(2);
+    }
   };
 
   // Reset state when closing
   const handleClose = () => {
     setStep(1);
     setShippingForm({ name: '', email: '', address: '', city: '', zip: '' });
-    setPaymentForm({ cardName: '', cardNumber: '', cardExpiry: '', cardCvv: '' });
     onClose();
   };
 
@@ -247,80 +247,52 @@ export default function Checkout({ isOpen, onClose, cart, onClearCart, user }) {
             </form>
           )}
 
-          {/* STEP 2: Payment Form */}
+          {/* STEP 2: Payment Gateway Summary */}
           {step === 2 && (
-            <form onSubmit={handlePaymentSubmit} className="checkout-form">
+            <div className="checkout-summary-step">
               <div className="form-section-title">
                 <ShieldCheck size={18} className="text-glow-cyan" />
-                <span>Secure Card Payment</span>
+                <span>Order Summary & Secure Payment</span>
               </div>
               
-              <div className="form-group">
-                <label htmlFor="card-name">Cardholder Name</label>
-                <input 
-                  type="text" 
-                  id="card-name" 
-                  required
-                  value={paymentForm.cardName}
-                  onChange={(e) => setPaymentForm({ ...paymentForm, cardName: e.target.value })}
-                  placeholder="JOHN DOE"
-                />
+              <div className="summary-card glass-panel" style={{ padding: '20px', marginBottom: '20px', background: 'rgba(255,255,255,0.01)' }}>
+                <h3 className="summary-title" style={{ fontSize: '0.9rem', textTransform: 'uppercase', marginBottom: '10px', color: 'var(--text-primary)', fontFamily: 'var(--font-family-display)' }}>Shipping Details</h3>
+                <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>{shippingForm.name}</p>
+                <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>{shippingForm.address}</p>
+                <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>{shippingForm.city}, {shippingForm.zip}</p>
+                <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Email: {shippingForm.email}</p>
               </div>
 
-              <div className="form-group">
-                <label htmlFor="card-number">Card Number</label>
-                <div className="input-with-icon">
-                  <CreditCard className="input-icon" size={16} />
-                  <input 
-                    type="text" 
-                    id="card-number" 
-                    required
-                    value={paymentForm.cardNumber}
-                    onChange={handleCardNumberChange}
-                    placeholder="0000 0000 0000 0000"
-                  />
+              <div className="summary-card glass-panel" style={{ padding: '20px', marginBottom: '24px', background: 'rgba(255,255,255,0.01)' }}>
+                <h3 className="summary-title" style={{ fontSize: '0.9rem', textTransform: 'uppercase', marginBottom: '10px', color: 'var(--text-primary)', fontFamily: 'var(--font-family-display)' }}>Items Summary</h3>
+                {cart.map((item, idx) => (
+                  <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', marginBottom: '6px', color: 'var(--text-secondary)' }}>
+                    <span>{item.name} x{item.quantity}</span>
+                    <span>{formatPrice(item.price * item.quantity)}</span>
+                  </div>
+                ))}
+                <div style={{ height: '1px', background: 'var(--border-color)', margin: '12px 0' }}></div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: '700', fontSize: '1rem' }}>
+                  <span>Total Amount:</span>
+                  <span className="text-glow-cyan" style={{ fontSize: '1.2rem' }}>{formatPrice(total)}</span>
                 </div>
               </div>
 
-              <div className="form-row">
-                <div className="form-group flex-1">
-                  <label htmlFor="card-expiry">Expiry Date</label>
-                  <input 
-                    type="text" 
-                    id="card-expiry" 
-                    required
-                    value={paymentForm.cardExpiry}
-                    onChange={handleCardExpiryChange}
-                    placeholder="MM/YY"
-                  />
-                </div>
-                <div className="form-group flex-1">
-                  <label htmlFor="card-cvv">CVV</label>
-                  <input 
-                    type="password" 
-                    id="card-cvv" 
-                    required
-                    value={paymentForm.cardCvv}
-                    onChange={handleCardCvvChange}
-                    placeholder="123"
-                  />
-                </div>
-              </div>
-
-              <div className="security-notice">
+              <div className="security-notice" style={{ marginBottom: '24px', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
                 <ShieldCheck size={14} className="text-glow-cyan" />
-                <span>Simulated secure gateway. Do not enter real credit card numbers.</span>
+                <span>You will be redirected to Razorpay's secure overlay to complete payment.</span>
               </div>
 
               <div className="checkout-form-footer">
                 <button type="button" className="btn-secondary" onClick={() => setStep(1)}>
                   Back
                 </button>
-                <button type="submit" className="btn-accent" id="submit-payment">
-                  Pay {formatPrice(total)}
+                <button type="button" className="btn-accent" onClick={handleRazorpayPayment} id="pay-button" style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
+                  <span>Pay with Razorpay</span>
+                  <ChevronRight size={16} />
                 </button>
               </div>
-            </form>
+            </div>
           )}
 
           {/* STEP 3: Processing State */}
